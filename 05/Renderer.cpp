@@ -10,7 +10,7 @@ inline float deg2rad(const float &deg)
 // Compute reflection direction
 Vector3f reflect(const Vector3f &I, const Vector3f &N)
 {
-    return I - 2 * dotProduct(I, N) * N;
+	return I - 2 * dotProduct(I, N) * N;
 }
 
 // [comment]
@@ -28,13 +28,13 @@ Vector3f reflect(const Vector3f &I, const Vector3f &N)
 // [/comment]
 Vector3f refract(const Vector3f &I, const Vector3f &N, const float &ior)
 {
-    float cosi = clamp(-1, 1, dotProduct(I, N));
-    float etai = 1, etat = ior;
-    Vector3f n = N;
-    if (cosi < 0) { cosi = -cosi; } else { std::swap(etai, etat); n= -N; }
-    float eta = etai / etat;
-    float k = 1 - eta * eta * (1 - cosi * cosi);
-    return k < 0 ? 0 : eta * I + (eta * cosi - sqrtf(k)) * n;
+	float cosi = clamp(-1, 1, dotProduct(I, N));
+	float etai = 1, etat = ior;
+	Vector3f n = N;
+	if (cosi < 0) { cosi = -cosi; } else { std::swap(etai, etat); n= -N; }
+	float eta = etai / etat;
+	float k = 1 - eta * eta * (1 - cosi * cosi);
+	return k < 0 ? 0 : eta * I + (eta * cosi - sqrtf(k)) * n;
 }
 
 // [comment]
@@ -48,24 +48,24 @@ Vector3f refract(const Vector3f &I, const Vector3f &N, const float &ior)
 // [/comment]
 float fresnel(const Vector3f &I, const Vector3f &N, const float &ior)
 {
-    float cosi = clamp(-1, 1, dotProduct(I, N));
-    float etai = 1, etat = ior;
-    if (cosi > 0) {  std::swap(etai, etat); }
-    // Compute sini using Snell's law
-    float sint = etai / etat * sqrtf(std::max(0.f, 1 - cosi * cosi));
-    // Total internal reflection
-    if (sint >= 1) {
-        return 1;
-    }
-    else {
-        float cost = sqrtf(std::max(0.f, 1 - sint * sint));
-        cosi = fabsf(cosi);
-        float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
-        float Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
-        return (Rs * Rs + Rp * Rp) / 2;
-    }
-    // As a consequence of the conservation of energy, transmittance is given by:
-    // kt = 1 - kr;
+	float cosi = clamp(-1, 1, dotProduct(I, N));
+	float etai = 1, etat = ior;
+	if (cosi > 0) {  std::swap(etai, etat); }
+	// Compute sini using Snell's law
+	float sint = etai / etat * sqrtf(std::max(0.f, 1 - cosi * cosi));
+	// Total internal reflection
+	if (sint >= 1) {
+		return 1;
+	}
+	else {
+		float cost = sqrtf(std::max(0.f, 1 - sint * sint));
+		cosi = fabsf(cosi);
+		float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+		float Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+		return (Rs * Rs + Rp * Rp) / 2;
+	}
+	// As a consequence of the conservation of energy, transmittance is given by:
+	// kt = 1 - kr;
 }
 
 // [comment]
@@ -81,28 +81,28 @@ float fresnel(const Vector3f &I, const Vector3f &N, const float &ior)
 // \param isShadowRay is it a shadow ray. We can return from the function sooner as soon as we have found a hit.
 // [/comment]
 std::optional<hit_payload> trace(
-        const Vector3f &orig, const Vector3f &dir,
-        const std::vector<std::unique_ptr<Object> > &objects)
+		const Vector3f &orig, const Vector3f &dir,
+		const std::vector<std::unique_ptr<Object> > &objects)
 {
-    float tNear = kInfinity;
-    std::optional<hit_payload> payload;
-    for (const auto & object : objects)
-    {
-        float tNearK = kInfinity;
-        uint32_t indexK;
-        Vector2f uvK;
-        if (object->intersect(orig, dir, tNearK, indexK, uvK) && tNearK < tNear)
-        {
-            payload.emplace();
-            payload->hit_obj = object.get();
-            payload->tNear = tNearK;
-            payload->index = indexK;
-            payload->uv = uvK;
-            tNear = tNearK;
-        }
-    }
+	float tNear = kInfinity;
+	std::optional<hit_payload> payload;
+	for (const auto & object : objects)
+	{
+		float tNearK = kInfinity;
+		uint32_t indexK;
+		Vector2f uvK;
+		if (object->intersect(orig, dir, tNearK, indexK, uvK) && tNearK < tNear)
+		{
+			payload.emplace();
+			payload->hit_obj = object.get();
+			payload->tNear = tNearK;
+			payload->index = indexK;
+			payload->uv = uvK;
+			tNear = tNearK;
+		}
+	}
 
-    return payload;
+	return payload;
 }
 
 // [comment]
@@ -122,85 +122,85 @@ std::optional<hit_payload> trace(
 // at the intersection point.
 // [/comment]
 Vector3f castRay(
-        const Vector3f &orig, const Vector3f &dir, const Scene& scene,
-        int depth)
+		const Vector3f &orig, const Vector3f &dir, const Scene& scene,
+		int depth)
 {
-    if (depth > scene.maxDepth) {
-        return Vector3f(0.0,0.0,0.0);
-    }
+	if (depth > scene.maxDepth) {
+		return Vector3f(0.0,0.0,0.0);
+	}
 
-    Vector3f hitColor = scene.backgroundColor;
-    if (auto payload = trace(orig, dir, scene.get_objects()); payload)
-    {
-        Vector3f hitPoint = orig + dir * payload->tNear;
-        Vector3f N; // normal
-        Vector2f st; // st coordinates
-        payload->hit_obj->getSurfaceProperties(hitPoint, dir, payload->index, payload->uv, N, st);
-        switch (payload->hit_obj->materialType) {
-            case REFLECTION_AND_REFRACTION:
-            {
-                Vector3f reflectionDirection = normalize(reflect(dir, N));
-                Vector3f refractionDirection = normalize(refract(dir, N, payload->hit_obj->ior));
-                Vector3f reflectionRayOrig = (dotProduct(reflectionDirection, N) < 0) ?
-                                             hitPoint - N * scene.epsilon :
-                                             hitPoint + N * scene.epsilon;
-                Vector3f refractionRayOrig = (dotProduct(refractionDirection, N) < 0) ?
-                                             hitPoint - N * scene.epsilon :
-                                             hitPoint + N * scene.epsilon;
-                Vector3f reflectionColor = castRay(reflectionRayOrig, reflectionDirection, scene, depth + 1);
-                Vector3f refractionColor = castRay(refractionRayOrig, refractionDirection, scene, depth + 1);
-                float kr = fresnel(dir, N, payload->hit_obj->ior);
-                hitColor = reflectionColor * kr + refractionColor * (1 - kr);
-                break;
-            }
-            case REFLECTION:
-            {
-                float kr = fresnel(dir, N, payload->hit_obj->ior);
-                Vector3f reflectionDirection = reflect(dir, N);
-                Vector3f reflectionRayOrig = (dotProduct(reflectionDirection, N) < 0) ?
-                                             hitPoint + N * scene.epsilon :
-                                             hitPoint - N * scene.epsilon;
-                hitColor = castRay(reflectionRayOrig, reflectionDirection, scene, depth + 1) * kr;
-                break;
-            }
-            default:
-            {
-                // [comment]
-                // We use the Phong illumation model int the default case. The phong model
-                // is composed of a diffuse and a specular reflection component.
-                // [/comment]
-                Vector3f lightAmt = 0, specularColor = 0;
-                Vector3f shadowPointOrig = (dotProduct(dir, N) < 0) ?
-                                           hitPoint + N * scene.epsilon :
-                                           hitPoint - N * scene.epsilon;
-                // [comment]
-                // Loop over all lights in the scene and sum their contribution up
-                // We also apply the lambert cosine law
-                // [/comment]
-                for (auto& light : scene.get_lights()) {
-                    Vector3f lightDir = light->position - hitPoint;
-                    // square of the distance between hitPoint and the light
-                    float lightDistance2 = dotProduct(lightDir, lightDir);
-                    lightDir = normalize(lightDir);
-                    float LdotN = std::max(0.f, dotProduct(lightDir, N));
-                    // is the point in shadow, and is the nearest occluding object closer to the object than the light itself?
-                    auto shadow_res = trace(shadowPointOrig, lightDir, scene.get_objects());
-                    bool inShadow = shadow_res && (shadow_res->tNear * shadow_res->tNear < lightDistance2);
+	Vector3f hitColor = scene.backgroundColor;
+	if (std::optional<hit_payload> payload = trace(orig, dir, scene.get_objects()))
+	{
+		Vector3f hitPoint = orig + dir * payload->tNear;
+		Vector3f N; // normal
+		Vector2f st; // st coordinates
+		payload->hit_obj->getSurfaceProperties(hitPoint, dir, payload->index, payload->uv, N, st);
+		switch (payload->hit_obj->materialType) {
+			case REFLECTION_AND_REFRACTION:
+			{
+				Vector3f reflectionDirection = normalize(reflect(dir, N));
+				Vector3f refractionDirection = normalize(refract(dir, N, payload->hit_obj->ior));
+				Vector3f reflectionRayOrig = (dotProduct(reflectionDirection, N) < 0) ?
+											 hitPoint - N * scene.epsilon :
+											 hitPoint + N * scene.epsilon;
+				Vector3f refractionRayOrig = (dotProduct(refractionDirection, N) < 0) ?
+											 hitPoint - N * scene.epsilon :
+											 hitPoint + N * scene.epsilon;
+				Vector3f reflectionColor = castRay(reflectionRayOrig, reflectionDirection, scene, depth + 1);
+				Vector3f refractionColor = castRay(refractionRayOrig, refractionDirection, scene, depth + 1);
+				float kr = fresnel(dir, N, payload->hit_obj->ior);
+				hitColor = reflectionColor * kr + refractionColor * (1 - kr);
+				break;
+			}
+			case REFLECTION:
+			{
+				float kr = fresnel(dir, N, payload->hit_obj->ior);
+				Vector3f reflectionDirection = reflect(dir, N);
+				Vector3f reflectionRayOrig = (dotProduct(reflectionDirection, N) < 0) ?
+											 hitPoint + N * scene.epsilon :
+											 hitPoint - N * scene.epsilon;
+				hitColor = castRay(reflectionRayOrig, reflectionDirection, scene, depth + 1) * kr;
+				break;
+			}
+			default:
+			{
+				// [comment]
+				// We use the Phong illumation model int the default case. The phong model
+				// is composed of a diffuse and a specular reflection component.
+				// [/comment]
+				Vector3f lightAmt = 0, specularColor = 0;
+				Vector3f shadowPointOrig = (dotProduct(dir, N) < 0) ?
+										   hitPoint + N * scene.epsilon :
+										   hitPoint - N * scene.epsilon;
+				// [comment]
+				// Loop over all lights in the scene and sum their contribution up
+				// We also apply the lambert cosine law
+				// [/comment]
+				for (auto& light : scene.get_lights()) {
+					Vector3f lightDir = light->position - hitPoint;
+					// square of the distance between hitPoint and the light
+					float lightDistance2 = dotProduct(lightDir, lightDir);
+					lightDir = normalize(lightDir);
+					float LdotN = std::max(0.f, dotProduct(lightDir, N));
+					// is the point in shadow, and is the nearest occluding object closer to the object than the light itself?
+					auto shadow_res = trace(shadowPointOrig, lightDir, scene.get_objects());
+					bool inShadow = shadow_res && (shadow_res->tNear * shadow_res->tNear < lightDistance2);
 
-                    lightAmt += inShadow ? 0 : light->intensity * LdotN;
-                    Vector3f reflectionDirection = reflect(-lightDir, N);
+					lightAmt += inShadow ? 0 : light->intensity * LdotN;
+					Vector3f reflectionDirection = reflect(-lightDir, N);
 
-                    specularColor += powf(std::max(0.f, -dotProduct(reflectionDirection, dir)),
-                        payload->hit_obj->specularExponent) * light->intensity;
-                }
+					specularColor += powf(std::max(0.f, -dotProduct(reflectionDirection, dir)),
+						payload->hit_obj->specularExponent) * light->intensity;
+				}
 
-                hitColor = lightAmt * payload->hit_obj->evalDiffuseColor(st) * payload->hit_obj->Kd + specularColor * payload->hit_obj->Ks;
-                break;
-            }
-        }
-    }
+				hitColor = lightAmt * payload->hit_obj->evalDiffuseColor(st) * payload->hit_obj->Kd + specularColor * payload->hit_obj->Ks;
+				break;
+			}
+		}
+	}
 
-    return hitColor;
+	return hitColor;
 }
 
 // [comment]
@@ -210,68 +210,64 @@ Vector3f castRay(
 // [/comment]
 void Renderer::Render(const Scene& scene)
 {
-    std::vector<Vector3f> framebuffer(scene.width * scene.height);
+	std::vector<Vector3f> framebuffer(scene.width * scene.height);
 
-    float scale = std::tan(deg2rad(scene.fov * 0.5f));
-    float imageAspectRatio = scene.width / (float)scene.height;
+	float scale = std::tan(deg2rad(scene.fov * 0.5f));
+	float imageAspectRatio = scene.width / (float)scene.height;
 
-    // Use this variable as the eye position to start your rays.
-    Vector3f eye_pos(0);
-    int m = 0;
-    for (int j = 0; j < scene.height; ++j)
-    {
-        for (int i = 0; i < scene.width; ++i)
-        {
-            // generate primary ray direction
-            // Screen space to NDC space
-            float nx = (i + 0.5f) * 2 / scene.width - 1.0f;
-            float ny = (j + 0.5f) * 2 / scene.height - 1.0f;
+	// Use this variable as the eye position to start your rays.
+	Vector3f eye_pos(0);
+	int m = 0;
+	for (int j = 0; j < scene.height; ++j)
+	{
+		for (int i = 0; i < scene.width; ++i)
+		{
+			// generate primary ray direction
+			// Screen space to NDC space
+			// i: [0, width]
+			// i/width: [0, 1]
+			// i/width*2-1: [-1, 1]
+			float nx = (i + 0.5f) * 2 / scene.width - 1.0f;
+			float ny = (j + 0.5f) * 2 / scene.height - 1.0f;
 
-            // NDC space to world space
-           
-            // Project matrix
-            /*
-            *   [ n/r ,0   ,0       ,0      ]
-            *   [ 0   ,n/t ,0       ,0      ]
-            *   [ 0   ,0   ,n+f/n-f ,2nf/f-n]
-            *   [ 0   ,0   ,1       ,0      ]
-            */
+			// NDC space to world space
+		   
+			// Project matrix
+			/*
+			*   [ n/r ,0   ,0       ,0      ]
+			*   [ 0   ,n/t ,0       ,0      ]
+			*   [ 0   ,0   ,n+f/n-f ,2nf/f-n]
+			*   [ 0   ,0   ,1       ,0      ]
+			* 
+			* n = 1
+			* r = tan(fov/2)*aspect
+			* t = tan(fov/2)
+			*/
+			// x(cam space) = nx / (n / r)
+			// y(cam space)  = ny / (n / t)
+			// -->
+			// x(cam space) = nx * tan(fov/2)*aspect
+			// y(cam space) = ny * tan(fov/2)
 
-            //  
-            // 在投影矩阵中 x 的系数为 n/r
-            // 在投影矩阵中 y 的系数为 n/t
-            // 现在要做一个逆操作，所以我们用 NDC空间的坐标分别除以投影矩阵中的系数
-            // x = nx / n / r
-            // y = ny / n / t
-            // 其中 n(相机到近投影面距离为 默认情况下为1）
-            // => 
-            // x = nx * r
-            // y = ny * t
-            // 其中 r = tan(fov/2)*aspect * |n|， t=tan(fov/2) * |n| , |n| = 1
-            // 所以可得,世界空间中坐标为
-            // x = nx * tan(fov/2)*aspect
-            // y = ny * tan(fov/2)*aspect
+			float x = nx * scale * imageAspectRatio;
+			float y = -ny * scale;
 
-            float x = nx * scale * imageAspectRatio;
-            float y = -ny * scale;
+			Vector3f dir = Vector3f(x, y, -1); // Don't forget to normalize this direction!
+			dir = normalize(dir);
+			framebuffer[m++] = castRay(eye_pos, dir, scene, 0);
+		}
+		UpdateProgress(j / (float)scene.height);
+	}
 
-
-            Vector3f dir = Vector3f(x, y, -1); // Don't forget to normalize this direction!
-            dir = normalize(dir);
-            framebuffer[m++] = castRay(eye_pos, dir, scene, 0);
-        }
-        UpdateProgress(j / (float)scene.height);
-    }
-
-    // save framebuffer to file
-    FILE* fp = fopen("binary.ppm", "wb");
-    (void)fprintf(fp, "P6\n%d %d\n255\n", scene.width, scene.height);
-    for (auto i = 0; i < scene.height * scene.width; ++i) {
-        static unsigned char color[3];
-        color[0] = (char)(255 * clamp(0, 1, framebuffer[i].x));
-        color[1] = (char)(255 * clamp(0, 1, framebuffer[i].y));
-        color[2] = (char)(255 * clamp(0, 1, framebuffer[i].z));
-        fwrite(color, 1, 3, fp);
-    }
-    fclose(fp);    
+	// save framebuffer to file
+	FILE* fp = fopen("binary.ppm", "wb");
+	(void)fprintf(fp, "P6\n%d %d\n255\n", scene.width, scene.height);
+	for (auto i = 0; i < scene.height * scene.width; ++i) {
+		static unsigned char color[3];
+		color[0] = (char)(255 * clamp(0, 1, framebuffer[i].x));
+		color[1] = (char)(255 * clamp(0, 1, framebuffer[i].y));
+		color[2] = (char)(255 * clamp(0, 1, framebuffer[i].z));
+		fwrite(color, 1, 3, fp);
+	}
+	fclose(fp);
 }
